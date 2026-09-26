@@ -654,9 +654,9 @@ document.getElementById('generate-btn').addEventListener('click', async () => {
       const { data, error } = await sb.rpc('next_dc_number', { p_po_number: draft.po_number });
       if (error) throw error;
       const row = Array.isArray(data) ? data[0] : data;
-      draft.dc_number = row.dc_number;
-      draft.po_last3 = row.po_last3;
-      draft.serial = row.serial;
+      draft.dc_number = row.result_dc_number;
+      draft.po_last3 = row.result_po_last3;
+      draft.serial = row.result_serial;
     }
 
     const { data: { user } } = await sb.auth.getUser();
