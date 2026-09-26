@@ -122,14 +122,36 @@ async function loadAll() {
 }
 
 // ══════════════════════════════════════════
-// TABS
+// TABS + MOBILE NAV
 // ══════════════════════════════════════════
+const tabsNav = document.getElementById('tabs-nav');
+const navToggle = document.getElementById('nav-toggle');
+const navOverlay = document.getElementById('nav-overlay');
+
+function closeMobileNav() {
+  tabsNav.classList.remove('open');
+  navOverlay.classList.remove('open');
+  navToggle.classList.remove('open');
+  navToggle.setAttribute('aria-expanded', 'false');
+}
+function openMobileNav() {
+  tabsNav.classList.add('open');
+  navOverlay.classList.add('open');
+  navToggle.classList.add('open');
+  navToggle.setAttribute('aria-expanded', 'true');
+}
+navToggle.addEventListener('click', () => {
+  if (tabsNav.classList.contains('open')) closeMobileNav(); else openMobileNav();
+});
+navOverlay.addEventListener('click', closeMobileNav);
+
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
     document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    closeMobileNav();
   });
 });
 

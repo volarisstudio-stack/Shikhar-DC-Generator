@@ -30,18 +30,22 @@
 <div id="app" class="hidden">
 
   <header class="app-header">
-    <div>
+    <div class="header-brand">
       <h1 id="company-name">Shikhar Commodities</h1>
       <div id="company-address" class="muted"></div>
     </div>
     <div class="header-right">
-      <div>Next DC Number<br><strong id="next-dc-preview">DC-001</strong></div>
+      <div class="header-dc-preview">Next DC Number<br><strong id="next-dc-preview">DC-001</strong></div>
       <div id="sync-status" class="sync-status">… Connecting…</div>
       <button id="signout-btn" class="btn-secondary">Sign Out</button>
+      <button id="nav-toggle" class="nav-toggle" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
     </div>
   </header>
 
-  <nav class="tabs">
+  <div id="nav-overlay" class="nav-overlay"></div>
+  <nav class="tabs" id="tabs-nav">
     <button class="tab-btn active" data-tab="new-dc">New Delivery Challan</button>
     <button class="tab-btn" data-tab="manage-pos">Manage POs</button>
     <button class="tab-btn" data-tab="manage-parties">Manage Parties</button>
@@ -102,12 +106,12 @@
 
       <fieldset>
         <legend>Particulars of Goods</legend>
-        <table class="items-table">
+        <div class="table-scroll"><table class="items-table">
           <thead><tr>
             <th>Description of Goods</th><th>Truck No.</th><th>Kanta Wt (MTs)</th><th>Rate (₹)</th><th>Amount (₹)</th><th></th>
           </tr></thead>
           <tbody id="items-tbody"></tbody>
-        </table>
+        </table></div>
         <button type="button" id="add-row-btn" class="btn-secondary">+ Add Row</button>
 
         <div class="totals-row">
@@ -160,10 +164,10 @@
           <button type="button" id="po-cancel-btn" class="btn-link hidden">Cancel</button>
         </div>
       </fieldset>
-      <table class="data-table">
+      <div class="table-scroll"><table class="data-table">
         <thead><tr><th>PO Number</th><th>Party</th><th>Product</th><th>Rate</th><th>Qty (MTs)</th><th>Remarks</th><th></th></tr></thead>
         <tbody id="pos-tbody"></tbody>
-      </table>
+      </table></div>
     </section>
 
     <!-- ── MANAGE PARTIES ── -->
@@ -189,20 +193,20 @@
           <button type="button" id="party-cancel-btn" class="btn-link hidden">Cancel</button>
         </div>
       </fieldset>
-      <table class="data-table">
+      <div class="table-scroll"><table class="data-table">
         <thead><tr><th>Name</th><th>GST</th><th>Address</th><th>State</th><th>Phone</th><th>Email</th><th></th></tr></thead>
         <tbody id="parties-tbody"></tbody>
-      </table>
+      </table></div>
     </section>
 
     <!-- ── DC HISTORY ── -->
     <section id="tab-dc-history" class="tab-panel">
       <h2>DC History</h2>
       <p class="muted">All generated delivery challans. Click any row to re-view.</p>
-      <table class="data-table">
+      <div class="table-scroll"><table class="data-table">
         <thead><tr><th>DC No.</th><th>Date</th><th>Party</th><th>PO No.</th><th>Vehicle</th><th>Grand Total</th><th></th></tr></thead>
         <tbody id="history-tbody"><tr><td colspan="7">No challans generated yet.</td></tr></tbody>
-      </table>
+      </table></div>
     </section>
 
     <!-- ── REPORTS ── -->
@@ -213,23 +217,23 @@
         <label>Filter by Party <select id="report-party-filter"><option value="">All Parties</option></select></label>
         <label>Filter by PO <select id="report-po-filter"><option value="">All POs</option></select></label>
       </div>
-      <table class="data-table">
+      <div class="table-scroll"><table class="data-table">
         <thead><tr><th>DC No.</th><th>Date</th><th>Party</th><th>PO No.</th><th>Vehicle</th><th>Kanta Wt (MTs)</th><th>Grand Total</th></tr></thead>
         <tbody id="report-tbody"><tr><td colspan="7">No challans match this filter.</td></tr></tbody>
-      </table>
+      </table></div>
       <button type="button" id="export-dc-btn" class="btn-secondary">📊 Export to Excel</button>
 
       <h3>PO Summary</h3>
-      <table class="data-table">
+      <div class="table-scroll"><table class="data-table">
         <thead><tr><th>PO Number</th><th>Party</th><th>Product</th><th>PO Qty</th><th>Dispatched</th><th>Balance</th></tr></thead>
         <tbody id="po-summary-tbody"><tr><td colspan="6">No POs found.</td></tr></tbody>
-      </table>
+      </table></div>
 
       <h3>Sauda Summary</h3>
-      <table class="data-table">
+      <div class="table-scroll"><table class="data-table">
         <thead><tr><th>Broker</th><th>Product</th><th>Sauda Qty</th><th>Deducted</th><th>Balance</th></tr></thead>
         <tbody id="sauda-summary-tbody"><tr><td colspan="5">No saudas found. Add saudas from Sauda (Broker) section.</td></tr></tbody>
-      </table>
+      </table></div>
       <button type="button" id="export-sauda-btn" class="btn-secondary">📊 Export Sauda to Excel</button>
     </section>
 
@@ -254,10 +258,10 @@
           <button type="button" id="sauda-cancel-btn" class="btn-link hidden">Cancel</button>
         </div>
       </fieldset>
-      <table class="data-table">
+      <div class="table-scroll"><table class="data-table">
         <thead><tr><th>Broker</th><th>Product</th><th>Qty</th><th>Deducted</th><th>Rate</th><th>Date</th><th>Remarks</th><th></th></tr></thead>
         <tbody id="sauda-tbody"></tbody>
-      </table>
+      </table></div>
     </section>
 
     <!-- ── COMPANY ── -->
