@@ -11,7 +11,7 @@ source could read, edit, or delete all company data, and a `FREEZE_MODE`
 flag left in the code had frozen all data entry.
 
 This version:
-- Stores data in a real Postgres database (Supabase project `shikhar-dc-generator`, org "Ayatti Coal").
+- Stores data in a real Postgres database (Supabase project `shikhar-dc-generator`, under volarisstudio-stack's org).
 - Uses Supabase's public **anon/publishable key** in the client, which is safe
   to expose — it can only do what the database's Row Level Security (RLS)
   policies allow.
@@ -42,8 +42,8 @@ office tool, turn that off:
 logins later, just add more users the same way — no code changes needed.)
 
 ### 3. Connect Netlify for auto-deploy
-- Netlify → Add new site → Import an existing project → connect to
-  `volarisstudio-stack/shikhar-dc-generator` on GitHub.
+- Netlify (team "Volaris") → Add new site → Import an existing project →
+  connect to `volarisstudio-stack/Shikhar-DC-Generator` on GitHub.
 - Build command: (leave blank) — Publish directory: `.`
 - Deploy. Every push to `main` will now redeploy automatically.
 
@@ -59,7 +59,7 @@ supabase/          Reference copy of the schema (see below)
 
 ## Database
 
-Project ref: `nkqjziglmefagjndeueu` (Supabase org "Ayatti Coal").
+Project ref: `iaktywhaipuawyrnnynz` (under volarisstudio-stack's Supabase org).
 
 Tables: `company`, `parties`, `purchase_orders`, `saudas`, `challans`,
 `dc_counters`. All have RLS enabled with a single "authenticated full
