@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DC Generator – Shikhar Commodities</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ══════════════════ LOGIN SCREEN ══════════════════ -->
+<div id="login-screen" class="login-screen hidden">
+  <div class="login-card">
+    <h1>Shikhar Commodities</h1>
+    <p class="muted">Delivery Challan Generator — Office Login</p>
+    <form id="login-form">
+      <label>Email
+        <input type="email" id="login-email" required autocomplete="username">
+      </label>
+      <label>Password
+        <input type="password" id="login-password" required autocomplete="current-password">
+      </label>
+      <button type="submit" class="btn-primary" id="login-btn">Sign In</button>
+      <div id="login-error" class="error-msg"></div>
+    </form>
+  </div>
+</div>
+
+<!-- ══════════════════ APP ══════════════════ -->
+<div id="app" class="hidden">
+
+  <header class="app-header">
+    <div>
+      <h1 id="company-name">Shikhar Commodities</h1>
+      <div id="company-address" class="muted"></div>
+    </div>
+    <div class="header-right">
+      <div>Next DC Number<br><strong id="next-dc-preview">DC-001</strong></div>
+      <div id="sync-status" class="sync-status">… Connecting…</div>
+      <button id="signout-btn" class="btn-secondary">Sign Out</button>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="new-dc">New Delivery Challan</button>
+    <button class="tab-btn" data-tab="manage-pos">Manage POs</button>
+    <button class="tab-btn" data-tab="manage-parties">Manage Parties</button>
+    <button class="tab-btn" data-tab="dc-history">DC History</button>
+    <button class="tab-btn" data-tab="reports">Reports</button>
+    <button class="tab-btn" data-tab="sauda">Sauda (Broker)</button>
+    <button class="tab-btn" data-tab="company">Company Details</button>
+  </nav>
+
+  <main>
+    <!-- ── NEW DC ── -->
+    <section id="tab-new-dc" class="tab-panel active">
+      <h2>New Delivery Challan</h2>
+      <p class="muted">Fill in the details below. DC number is auto-assigned.</p>
+
+      <fieldset>
+        <legend>Challan Info</legend>
+        <div class="grid-3">
+          <label>DC Number
+            <div class="inline">
+              <input type="text" id="dc-number" readonly>
+              <button type="button" id="dc-edit-btn" class="btn-link">✎ Edit</button>
+            </div>
+          </label>
+          <label>Date <input type="date" id="dc-date"></label>
+          <label>PO Number
+            <select id="dc-po-select"><option value="">— Select a saved PO —</option></select>
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Sale Party</legend>
+        <div class="grid-2">
+          <label>Select Saved Party
+            <select id="dc-party-select"><option value="">— Select a saved party or fill manually —</option></select>
+          </label>
+        </div>
+        <div class="grid-2">
+          <label>Party Name * <input type="text" id="dc-party-name" required></label>
+          <label>GST Number <input type="text" id="dc-party-gst"></label>
+        </div>
+        <div class="grid-2">
+          <label>Address <textarea id="dc-party-addr" rows="2"></textarea></label>
+          <label>State <input type="text" id="dc-party-state"></label>
+        </div>
+        <button type="button" id="dc-save-party-btn" class="btn-secondary">+ Save as New Party</button>
+      </fieldset>
+
+      <fieldset>
+        <legend>Transport Details</legend>
+        <div class="grid-3">
+          <label>Vehicle Number <input type="text" id="dc-vehicle"></label>
+          <label>Driver Name <input type="text" id="dc-driver"></label>
+          <label>Delivery Destination <input type="text" id="dc-destination"></label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Particulars of Goods</legend>
+        <table class="items-table">
+          <thead><tr>
+            <th>Description of Goods</th><th>Truck No.</th><th>Kanta Wt (MTs)</th><th>Rate (₹)</th><th>Amount (₹)</th><th></th>
+          </tr></thead>
+          <tbody id="items-tbody"></tbody>
+        </table>
+        <button type="button" id="add-row-btn" class="btn-secondary">+ Add Row</button>
+
+        <div class="totals-row">
+          <div>Total Kanta Wt (MTs)<br><strong id="total-kanta">0.000 MTs</strong></div>
+          <div>Subtotal<br><strong id="subtotal">₹ 0.00</strong></div>
+          <div>Grand Total<br><strong id="grand-total">₹ 0.00</strong></div>
+          <label>CST/VAT % <input type="number" id="dc-tax-pct" value="0" step="0.01"></label>
+        </div>
+        <label>Remarks / Notes <textarea id="dc-remarks" rows="2"></textarea></label>
+      </fieldset>
+
+      <fieldset>
+        <legend>📋 Broker Sauda Deduction (Internal — not printed on DC)</legend>
+        <div class="grid-2">
+          <label>Select Broker / Sauda
+            <select id="dc-sauda-select"><option value="">— No broker / not applicable —</option></select>
+          </label>
+          <label>Deduct MTs from Sauda <input type="number" id="dc-sauda-deduct" step="0.001"></label>
+        </div>
+      </fieldset>
+
+      <div class="actions">
+        <button type="button" id="preview-btn" class="btn-secondary">Preview DC</button>
+        <button type="button" id="generate-btn" class="btn-primary">Generate &amp; Save PDF</button>
+        <button type="button" id="clear-form-btn" class="btn-link">Clear Form</button>
+      </div>
+    </section>
+
+    <!-- ── MANAGE POs ── -->
+    <section id="tab-manage-pos" class="tab-panel">
+      <h2>Manage Purchase Orders</h2>
+      <p class="muted">Save PO details — party &amp; product auto-fill when selected in New DC.</p>
+      <fieldset>
+        <legend id="po-form-legend">Add New PO</legend>
+        <div class="grid-3">
+          <label>PO Number * <input type="text" id="po-number" required></label>
+          <label>Link to Party
+            <select id="po-party-select"><option value="">— Select saved party —</option></select>
+          </label>
+          <label>Or type Party Name <input type="text" id="po-party-name"></label>
+        </div>
+        <div class="grid-3">
+          <label>Product / Commodity * <input type="text" id="po-product" required></label>
+          <label>Rate (₹/MT) <input type="number" id="po-rate" step="0.01"></label>
+          <label>PO Qty (MTs) <input type="number" id="po-qty" step="0.001"></label>
+        </div>
+        <label>Remarks <input type="text" id="po-remarks"></label>
+        <div class="actions">
+          <button type="button" id="po-save-btn" class="btn-primary">Save PO</button>
+          <button type="button" id="po-cancel-btn" class="btn-link hidden">Cancel</button>
+        </div>
+      </fieldset>
+      <table class="data-table">
+        <thead><tr><th>PO Number</th><th>Party</th><th>Product</th><th>Rate</th><th>Qty (MTs)</th><th>Remarks</th><th></th></tr></thead>
+        <tbody id="pos-tbody"></tbody>
+      </table>
+    </section>
+
+    <!-- ── MANAGE PARTIES ── -->
+    <section id="tab-manage-parties" class="tab-panel">
+      <h2>Manage Parties</h2>
+      <p class="muted">Save your regular customers for quick selection while making a DC.</p>
+      <fieldset>
+        <legend id="party-form-legend">Add New Party</legend>
+        <div class="grid-2">
+          <label>Party Name * <input type="text" id="party-name" required></label>
+          <label>GST Number <input type="text" id="party-gst"></label>
+        </div>
+        <div class="grid-2">
+          <label>Address <textarea id="party-addr" rows="2"></textarea></label>
+          <label>State <input type="text" id="party-state"></label>
+        </div>
+        <div class="grid-2">
+          <label>Phone <input type="text" id="party-phone"></label>
+          <label>Email <input type="email" id="party-email"></label>
+        </div>
+        <div class="actions">
+          <button type="button" id="party-save-btn" class="btn-primary">Save Party</button>
+          <button type="button" id="party-cancel-btn" class="btn-link hidden">Cancel</button>
+        </div>
+      </fieldset>
+      <table class="data-table">
+        <thead><tr><th>Name</th><th>GST</th><th>Address</th><th>State</th><th>Phone</th><th>Email</th><th></th></tr></thead>
+        <tbody id="parties-tbody"></tbody>
+      </table>
+    </section>
+
+    <!-- ── DC HISTORY ── -->
+    <section id="tab-dc-history" class="tab-panel">
+      <h2>DC History</h2>
+      <p class="muted">All generated delivery challans. Click any row to re-view.</p>
+      <table class="data-table">
+        <thead><tr><th>DC No.</th><th>Date</th><th>Party</th><th>PO No.</th><th>Vehicle</th><th>Grand Total</th><th></th></tr></thead>
+        <tbody id="history-tbody"><tr><td colspan="7">No challans generated yet.</td></tr></tbody>
+      </table>
+    </section>
+
+    <!-- ── REPORTS ── -->
+    <section id="tab-reports" class="tab-panel">
+      <h2>Reports</h2>
+      <p class="muted">Filter DCs by party · Track PO progress</p>
+      <div class="grid-2">
+        <label>Filter by Party <select id="report-party-filter"><option value="">All Parties</option></select></label>
+        <label>Filter by PO <select id="report-po-filter"><option value="">All POs</option></select></label>
+      </div>
+      <table class="data-table">
+        <thead><tr><th>DC No.</th><th>Date</th><th>Party</th><th>PO No.</th><th>Vehicle</th><th>Kanta Wt (MTs)</th><th>Grand Total</th></tr></thead>
+        <tbody id="report-tbody"><tr><td colspan="7">No challans match this filter.</td></tr></tbody>
+      </table>
+      <button type="button" id="export-dc-btn" class="btn-secondary">📊 Export to Excel</button>
+
+      <h3>PO Summary</h3>
+      <table class="data-table">
+        <thead><tr><th>PO Number</th><th>Party</th><th>Product</th><th>PO Qty</th><th>Dispatched</th><th>Balance</th></tr></thead>
+        <tbody id="po-summary-tbody"><tr><td colspan="6">No POs found.</td></tr></tbody>
+      </table>
+
+      <h3>Sauda Summary</h3>
+      <table class="data-table">
+        <thead><tr><th>Broker</th><th>Product</th><th>Sauda Qty</th><th>Deducted</th><th>Balance</th></tr></thead>
+        <tbody id="sauda-summary-tbody"><tr><td colspan="5">No saudas found. Add saudas from Sauda (Broker) section.</td></tr></tbody>
+      </table>
+      <button type="button" id="export-sauda-btn" class="btn-secondary">📊 Export Sauda to Excel</button>
+    </section>
+
+    <!-- ── SAUDA ── -->
+    <section id="tab-sauda" class="tab-panel">
+      <h2>Sauda (Broker-wise)</h2>
+      <p class="muted">Add broker saudas. Quantity is automatically deducted when a DC is generated against that broker.</p>
+      <fieldset>
+        <legend id="sauda-form-legend">Add New Sauda</legend>
+        <div class="grid-3">
+          <label>Broker Name * <input type="text" id="sauda-broker" required></label>
+          <label>Product / Commodity * <input type="text" id="sauda-product" required></label>
+          <label>Sauda Qty (MTs) * <input type="number" id="sauda-qty" step="0.001" required></label>
+        </div>
+        <div class="grid-3">
+          <label>Rate (₹/MT) <input type="number" id="sauda-rate" step="0.01"></label>
+          <label>Sauda Date <input type="date" id="sauda-date"></label>
+          <label>Remarks <input type="text" id="sauda-remarks"></label>
+        </div>
+        <div class="actions">
+          <button type="button" id="sauda-save-btn" class="btn-primary">Save Sauda</button>
+          <button type="button" id="sauda-cancel-btn" class="btn-link hidden">Cancel</button>
+        </div>
+      </fieldset>
+      <table class="data-table">
+        <thead><tr><th>Broker</th><th>Product</th><th>Qty</th><th>Deducted</th><th>Rate</th><th>Date</th><th>Remarks</th><th></th></tr></thead>
+        <tbody id="sauda-tbody"></tbody>
+      </table>
+    </section>
+
+    <!-- ── COMPANY ── -->
+    <section id="tab-company" class="tab-panel">
+      <h2>Company Details</h2>
+      <p class="muted">These details appear on every printed delivery challan.</p>
+      <fieldset>
+        <legend>Our Company</legend>
+        <div class="grid-2">
+          <label>Company Name * <input type="text" id="company-form-name" required></label>
+          <label>GSTIN <input type="text" id="company-form-gst"></label>
+        </div>
+        <div class="grid-2">
+          <label>Address Line 1 <input type="text" id="company-form-addr1"></label>
+          <label>Address Line 2 <input type="text" id="company-form-addr2"></label>
+        </div>
+        <div class="grid-2">
+          <label>Email <input type="email" id="company-form-email"></label>
+          <label>Phone <input type="text" id="company-form-phone"></label>
+        </div>
+        <button type="button" id="company-save-btn" class="btn-primary">Save Company Details</button>
+      </fieldset>
+    </section>
+  </main>
+</div>
+
+<!-- ══════════════════ PREVIEW MODAL ══════════════════ -->
+<div id="preview-modal" class="modal hidden">
+  <div class="modal-box">
+    <div class="modal-header no-print">
+      <h3>Delivery Challan Preview</h3>
+      <button type="button" id="preview-close-btn" class="btn-link">✕ Close</button>
+    </div>
+    <div id="preview-content" class="dc-print"></div>
+    <div class="modal-footer no-print">
+      <button type="button" id="preview-print-btn" class="btn-primary">🖨 Print / Save PDF</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="js/config.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
