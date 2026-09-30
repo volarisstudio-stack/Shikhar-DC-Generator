@@ -631,10 +631,17 @@ function currentChallanDraft() {
 
 function dcPreviewHtml(c, company) {
   const rows = c.items.map(r => `<tr><td>${esc(r.desc)}</td><td>${esc(r.truck)}</td><td>${Number(r.net).toFixed(3)}</td></tr>`).join('');
+  // The reference challan's goods table is a fixed-size printed form: a
+  // minimum of 10 rows every time, with any unused rows left blank. Pad out
+  // to that minimum so a 1-item DC still produces the same tall table the
+  // office is used to, instead of a table that visually stops after 1 row.
+  const MIN_ROWS = 10;
+  const fillerCount = Math.max(0, MIN_ROWS - c.items.length);
+  const fillerRows = '<tr class="dc-filler-row"><td></td><td></td><td></td></tr>'.repeat(fillerCount);
   const companyName = esc(company?.name || '');
   return `
     <div class="dc-doc-header">
-      <div class="dc-doc-label">D E L I V E R Y &nbsp; C H A L L A N</div>
+      <div class="dc-doc-label">DELIVERY CHALLAN</div>
       <div class="dc-company-name">${companyName}</div>
       ${company?.addr1 ? `<div class="dc-company-addr">${esc(company.addr1)}</div>` : ''}
       ${company?.addr2 ? `<div class="dc-company-addr">${esc(company.addr2)}</div>` : ''}
@@ -654,12 +661,15 @@ function dcPreviewHtml(c, company) {
       <div>${esc(c.party_addr)}${c.party_state ? ', ' + esc(c.party_state) : ''}</div>
     </div>
     ${(c.driver || c.destination) ? `<div class="dc-transport-line">${c.driver ? 'Driver: ' + esc(c.driver) : ''}${c.driver && c.destination ? ' &nbsp;|&nbsp; ' : ''}${c.destination ? 'Destination: ' + esc(c.destination) : ''}</div>` : ''}
-    <table class="dc-goods-table">
-      <thead><tr><th>Particulars of Goods</th><th>Truck No.</th><th>Kanta Wt (MTs)</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>
+    <div class="dc-goods-wrap">
+      <table class="dc-goods-table">
+        <colgroup><col style="width:50%"><col style="width:27%"><col style="width:23%"></colgroup>
+        <thead><tr><th>Particulars of Goods</th><th>Truck No.</th><th>Kanta Wt (MTs)</th></tr></thead>
+        <tbody>${rows}${fillerRows}</tbody>
+      </table>
+    </div>
     <div class="dc-total-row">
-      <div>Total Kanta Weight: <strong>${Number(c.total_kanta_wt).toFixed(3)} MTs</strong></div>
+      <div>Total Kanta Weight:&nbsp; <strong>${Number(c.total_kanta_wt).toFixed(3)} MTs</strong></div>
       <div class="dc-exempt-note">Goods are GST Exempt&nbsp;|&nbsp;No Tax Applicable</div>
     </div>
     ${c.remarks ? `<div class="dc-remarks">Remarks: ${esc(c.remarks)}</div>` : ''}
