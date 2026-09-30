@@ -88,10 +88,18 @@ main{max-width:1100px;margin:0 auto;padding:1.5em;}
 
 fieldset{border:1px solid var(--border);border-radius:8px;margin-bottom:1.2em;padding:1em 1.2em;background:#fff;min-width:0;}
 legend{padding:0 0.5em;font-weight:600;color:var(--primary-dark);}
-label{display:flex;flex-direction:column;gap:0.3em;font-size:0.9em;margin-bottom:0.8em;}
-input,select,textarea{padding:0.5em;border:1px solid var(--border);border-radius:6px;font-size:0.95em;font-family:inherit;}
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1em;}
-.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1em;}
+label{display:flex;flex-direction:column;gap:0.3em;font-size:0.9em;margin-bottom:0.8em;min-width:0;}
+input,select,textarea{padding:0.5em;border:1px solid var(--border);border-radius:6px;font-size:0.95em;font-family:inherit;width:100%;min-width:0;}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1em;min-width:0;}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1em;min-width:0;}
+/* Grid/flex items default to min-width:auto, meaning they refuse to shrink
+   below their content's natural size — a <select>'s longest option or a
+   <input type="date">'s native widget both have a minimum intrinsic width
+   that's wider than a narrow mobile column, so without this override those
+   fields push past the grid track and spill outside the form. */
+.grid-2 > label,.grid-3 > label{min-width:0;}
+.inline{min-width:0;}
+.inline input{min-width:0;flex:1;}
 @media(max-width:700px){
   .grid-2,.grid-3{grid-template-columns:1fr;}
   fieldset{padding:0.8em;}
