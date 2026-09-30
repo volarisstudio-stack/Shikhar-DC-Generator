@@ -495,7 +495,12 @@ function renderItems() {
       const i = Number(inp.dataset.i), f = inp.dataset.f;
       items[i][f] = f === 'net' || f === 'rate' ? Number(inp.value) : inp.value;
       items[i].amt = (Number(items[i].net) || 0) * (Number(items[i].rate) || 0);
-      renderItems();
+      // Only patch the computed amount cell in place — do NOT re-render the whole
+      // table here. Rebuilding the tbody's innerHTML on every keystroke used to
+      // destroy and recreate the input the person was actively typing in, which
+      // threw focus out of the field after every single character.
+      const amtCell = inp.closest('tr')?.children[4];
+      if (amtCell) amtCell.textContent = money(items[i].amt);
       recalcTotals();
     });
   });
@@ -625,24 +630,57 @@ function currentChallanDraft() {
 }
 
 function dcPreviewHtml(c, company) {
-  const rows = c.items.map(r => `<tr><td>${esc(r.desc)}</td><td>${esc(r.truck)}</td><td>${Number(r.net).toFixed(3)}</td><td>${money(r.rate)}</td><td>${money(r.amt)}</td></tr>`).join('');
+  const rows = c.items.map(r => `<tr><td>${esc(r.desc)}</td><td>${esc(r.truck)}</td><td>${Number(r.net).toFixed(3)}</td></tr>`).join('');
+  const companyName = esc(company?.name || '');
   return `
-    <div class="dc-title">DELIVERY CHALLAN</div>
-    <div class="dc-head-row">
-      <div><strong>${esc(company?.name || '')}</strong><br>${esc(company?.addr1 || '')}<br>${esc(company?.addr2 || '')}${company?.gst ? '<br>GSTIN: ' + esc(company.gst) : ''}</div>
-      <div style="text-align:right">DC No: <strong>${esc(c.dc_number)}</strong><br>Date: ${esc(c.date)}<br>PO No: ${esc(c.po_number)}</div>
+    <div class="dc-doc-header">
+      <div class="dc-doc-label">D E L I V E R Y &nbsp; C H A L L A N</div>
+      <div class="dc-company-name">${companyName}</div>
+      ${company?.addr1 ? `<div class="dc-company-addr">${esc(company.addr1)}</div>` : ''}
+      ${company?.addr2 ? `<div class="dc-company-addr">${esc(company.addr2)}</div>` : ''}
+      ${company?.gst ? `<div class="dc-company-gst">GSTIN: ${esc(company.gst)}</div>` : ''}
     </div>
-    <div><strong>To:</strong> ${esc(c.party_name)}${c.party_gst ? ' (GSTIN: ' + esc(c.party_gst) + ')' : ''}<br>${esc(c.party_addr)}${c.party_state ? ', ' + esc(c.party_state) : ''}</div>
-    <div style="margin-top:0.5em"><strong>Vehicle:</strong> ${esc(c.vehicle)} &nbsp; <strong>Driver:</strong> ${esc(c.driver)} &nbsp; <strong>Destination:</strong> ${esc(c.destination)}</div>
-    <table><thead><tr><th>Description</th><th>Truck No.</th><th>Kanta Wt (MTs)</th><th>Rate</th><th>Amount</th></tr></thead>
-    <tbody>${rows}</tbody></table>
-    <div class="dc-head-row" style="margin-top:0.5em">
-      <div>Remarks: ${esc(c.remarks)}</div>
-      <div style="text-align:right">
-        Total Kanta Wt: ${Number(c.total_kanta_wt).toFixed(3)} MTs<br>
-        Subtotal: ${money(c.subtotal)}<br>
-        ${c.tax_pct ? 'CST/VAT ' + c.tax_pct + '%: ' + money(c.tax_amt) + '<br>' : ''}
-        <strong>Grand Total: ${money(c.grand_total)}</strong>
+    <hr class="dc-rule">
+    <div class="dc-meta-row">
+      <div class="dc-meta-left">
+        <div><span>Ch No.</span><strong>${esc(c.dc_number)}</strong></div>
+        <div><span>PO No.</span><strong>${esc(c.po_number)}</strong></div>
+        <div><span>Vehicle</span><strong>${esc(c.vehicle)}</strong></div>
+      </div>
+      <div class="dc-meta-right"><span>Date</span><strong>${esc(c.date)}</strong></div>
+    </div>
+    <div class="dc-to-block">
+      <div>To, M/s <strong>${esc(c.party_name)}</strong>${c.party_gst ? ' (GSTIN: ' + esc(c.party_gst) + ')' : ''}</div>
+      <div>${esc(c.party_addr)}${c.party_state ? ', ' + esc(c.party_state) : ''}</div>
+    </div>
+    ${(c.driver || c.destination) ? `<div class="dc-transport-line">${c.driver ? 'Driver: ' + esc(c.driver) : ''}${c.driver && c.destination ? ' &nbsp;|&nbsp; ' : ''}${c.destination ? 'Destination: ' + esc(c.destination) : ''}</div>` : ''}
+    <table class="dc-goods-table">
+      <thead><tr><th>Particulars of Goods</th><th>Truck No.</th><th>Kanta Wt (MTs)</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div class="dc-total-row">
+      <div>Total Kanta Weight: <strong>${Number(c.total_kanta_wt).toFixed(3)} MTs</strong></div>
+      <div class="dc-exempt-note">Goods are GST Exempt&nbsp;|&nbsp;No Tax Applicable</div>
+    </div>
+    ${c.remarks ? `<div class="dc-remarks">Remarks: ${esc(c.remarks)}</div>` : ''}
+
+    <div class="dc-declaration">
+      <strong>DECLARATION</strong>
+      <p>We hereby declare that the goods described above (Broken Rice / Maize) are exempt from GST as per Notification No. 2/2017-Central Tax (Rate) dated 28.06.2017 and corresponding State GST notification. The said goods fall under HSN Code 1006 / 1005 and are not liable to tax under the CGST Act, 2017 and MGST Act, 2017. This delivery challan is issued under Rule 55 of the CGST Rules, 2017 for the purpose of transportation of goods without a tax invoice, as the supply is exempt from GST. The goods are being dispatched as per the purchase order mentioned above and the consignee is responsible for receipt and acknowledgment of the same.</p>
+    </div>
+    <div class="dc-declaration">
+      <strong>CONSIGNEE DECLARATION</strong>
+      <p>This is to certify that the goods specified herein have been dispatched in good condition. The consignee shall verify the quantity and quality upon receipt and acknowledge the same by signing this challan. No claims regarding shortage, damage, or discrepancy shall be entertained after the delivery challan has been duly signed and accepted.</p>
+    </div>
+
+    <div class="dc-sign-row">
+      <div class="dc-sign-block">
+        <div class="dc-sign-line"></div>
+        Receiver's Signature
+      </div>
+      <div class="dc-sign-block dc-sign-right">
+        <div class="dc-sign-line"></div>
+        For ${companyName}
       </div>
     </div>`;
 }
